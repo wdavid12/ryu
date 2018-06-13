@@ -22,6 +22,7 @@ import six
 from ryu.lib import dpid
 from ryu.lib import hub
 from ryu.ofproto import ofproto_v1_2
+from ryu.ofproto import nicira_ext
 
 
 LOG = logging.getLogger(__name__)
@@ -134,6 +135,15 @@ def to_action(dic, ofp, parser, action_type, util):
             return None
 
     elif action_type == EXPERIMENTER:
+        if hasattr(parser, 'NXActionSample'):
+        # OpenFlow 1.4 or later
+            if str_to_int(dic.get('subtype')) == nicira_ext.NXAST_SAMPLE:
+                    return parser.NXActionSample(
+                        probability=str_to_int(dic.get('probability')),
+                        collector_set_id=str_to_int(dic.get('collector_set_id')),
+                        obs_domain_id=str_to_int(dic.get('obs_domain_id')),
+                        obs_point_id=str_to_int(dic.get('obs_point_id')))
+
         experimenter = str_to_int(dic.get('experimenter'))
         data_type = dic.get('data_type', 'ascii')
 
